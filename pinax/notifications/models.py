@@ -106,6 +106,7 @@ class NoticeQueueBatch(models.Model):
     Denormalized data for a notice.
     """
     pickled_data = models.TextField()
+    send_at = models.DateTimeField(null=True, blank=True)
 
 
 def get_notification_language(user):
@@ -187,7 +188,7 @@ def send(*args, **kwargs):
             return send_now(*args, **kwargs)
 
 
-def queue(users, label, extra_context=None, sender=None):
+def queue(users, label, extra_context=None, sender=None, send_at=None):
     """
     Queue the notification in NoticeQueueBatch. This allows for large amounts
     of user notifications to be deferred to a seperate process running outside
@@ -202,4 +203,4 @@ def queue(users, label, extra_context=None, sender=None):
     notices = []
     for user in users:
         notices.append((user, label, extra_context, sender))
-    NoticeQueueBatch(pickled_data=base64.b64encode(pickle.dumps(notices))).save()
+    NoticeQueueBatch(pickled_data=base64.b64encode(pickle.dumps(notices)), send_at=send_at).save()
