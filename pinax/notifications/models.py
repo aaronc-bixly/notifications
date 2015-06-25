@@ -2,10 +2,13 @@ from __future__ import unicode_literals
 from __future__ import print_function
 
 import base64
+import json
 
 from django.db import models
 from django.db.models.query import QuerySet
 from django.core.exceptions import ImproperlyConfigured
+from django.conf import settings
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import get_language, activate
 from django.utils.encoding import python_2_unicode_compatible
@@ -19,7 +22,6 @@ from .utils import load_media_defaults, notice_setting_for_user
 
 
 NOTICE_MEDIA, NOTICE_MEDIA_DEFAULTS = load_media_defaults()
-
 
 class LanguageStoreNotAvailable(Exception):
     pass
@@ -109,6 +111,31 @@ class NoticeQueueBatch(models.Model):
     send_at = models.DateTimeField(null=True, blank=True)
 
 
+class NoticeHistory(models.Model):
+    notice_type = models.ForeignKey(NoticeType)
+    recipient = models.ManyToManyField(settings.AUTH_USER_MODEL, through='NoticeThrough')
+    sender = models.TextField()
+    extra_context = models.TextField()
+    sent = models.DateTimeField(editable=False)
+
+    def save(self, *args, **kwargs):
+        if not self.id:
+            self.sent = timezone.now()
+        return super(NoticeHistory, self).save(*args, **kwargs)
+
+    def set_extra_context(self, dict):
+        value = json.dumps(dict)
+        self.extra_context = value
+
+    def get_extra_context(self):
+        return json.loads(self.extra_context)
+
+
+class NoticeThrough(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL)
+    history = models.ForeignKey(NoticeHistory)
+
+
 def get_notification_language(user):
     """
     Returns site-specific notification language for this user. Raises
@@ -126,7 +153,7 @@ def get_notification_language(user):
     raise LanguageStoreNotAvailable
 
 
-def send_now(users, label, extra_context=None, sender=None, scoping=None):
+def send_now(users, label, extra_context=None, sender=settings.DEFAULT_FROM_EMAIL, scoping=None):
     """
     Creates a new notice.
 
@@ -145,6 +172,8 @@ def send_now(users, label, extra_context=None, sender=None, scoping=None):
 
     current_language = get_language()
 
+    sent_users = []
+
     for user in users:
         # get user language for user from language store defined in
         # NOTIFICATION_LANGUAGE_MODULE setting
@@ -159,10 +188,17 @@ def send_now(users, label, extra_context=None, sender=None, scoping=None):
 
         for backend in settings.PINAX_NOTIFICATIONS_BACKENDS.values():
             if backend.can_send(user, notice_type, scoping=scoping):
-                backend.deliver(user, sender, notice_type, extra_context)
+                backend.deliver(notice_type, extra_context, user, sender)
                 sent = True
+                sent_users.append(user)
 
     # reset environment to original language
+    history = NoticeHistory(notice_type=notice_type, sender=sender, extra_context=json.dumps(extra_context))
+    history.save()
+    throughlist = []
+    for user in sent_users:
+        throughlist.append(NoticeThrough(user=user, history=history))
+    NoticeThrough.objects.bulk_create(throughlist)
     activate(current_language)
     return sent
 

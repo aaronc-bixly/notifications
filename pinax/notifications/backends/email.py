@@ -1,7 +1,8 @@
 from django.conf import settings
-from django.core.mail import send_mail
+from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils.translation import ugettext
+from django.utils.html import strip_tags
 
 from .base import BaseBackend
 
@@ -15,7 +16,7 @@ class EmailBackend(BaseBackend):
             return True
         return False
 
-    def deliver(self, recipient, sender, notice_type, extra_context):
+    def deliver(self, notice_type, extra_context, recipient, sender=settings.DEFAULT_FROM_EMAIL):
         # TODO: require this to be passed in extra_context
 
         context = self.default_context()
@@ -27,16 +28,18 @@ class EmailBackend(BaseBackend):
         context.update(extra_context)
 
         messages = self.get_formatted_messages((
-            "short.txt",
-            "full.txt"
+            "subject.html",
+            "body.html"
         ), notice_type.label, context)
 
         subject = "".join(render_to_string("pinax/notifications/email_subject.txt", {
-            "message": messages["short.txt"],
+            "message": messages["subject.html"],
         }, context).splitlines())
 
-        body = render_to_string("pinax/notifications/email_body.txt", {
-            "message": messages["full.txt"],
-        }, context)
+        body = messages["body.html"]
+        body_text = strip_tags(body)
 
-        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [recipient.email])
+        msg = EmailMultiAlternatives(subject, body_text, sender, to=[recipient.email])
+        msg.attach_alternative(body, "text/html")
+
+        msg.send()

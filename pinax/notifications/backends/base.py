@@ -39,6 +39,7 @@ class BaseBackend(object):
             # conditionally turn off autoescaping for .txt extensions in format
             if fmt.endswith(".txt"):
                 context.autoescape = False
+
             format_templates[fmt] = render_to_string((
                 "pinax/notifications/{0}/{1}".format(label, fmt),
                 "pinax/notifications/{0}".format(fmt)), context_instance=context)
