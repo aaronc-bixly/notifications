@@ -50,7 +50,7 @@ class PinaxNotificationsAppConf(AppConf):
     LANGUAGE_MODEL = None
     QUEUE_ALL = False
     BACKENDS = [
-        ("email", "pinax.notifications.backends.email.EmailBackend"),
+        ("email", "pinax.notifications.backends.email_backend.EmailBackend"),
     ]
 
     def configure_backends(self, value):

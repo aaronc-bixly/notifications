@@ -34,6 +34,8 @@ class NoticeType(models.Model):
     display = models.CharField(_("display"), max_length=50)
     description = models.CharField(_("description"), max_length=100)
 
+    assets = models.TextField(_("assets"), null=True, blank=True)
+
     # by default only on for media with sensitivity less than or equal to this number
     default = models.IntegerField(_("default"))
 
@@ -44,13 +46,21 @@ class NoticeType(models.Model):
         verbose_name = _("notice type")
         verbose_name_plural = _("notice types")
 
+    def set_assets(self, asset_list):
+        self.extra_context = json.dumps(asset_list)
+
+    def get_assets(self):
+        return json.loads(self.assets)
+
     @classmethod
-    def create(cls, label, display, description, default=2, verbosity=1):
+    def create(cls, label, display, description, assets=None, default=2, verbosity=1):
         """
         Creates a new NoticeType.
 
         This is intended to be used by other apps as a post_syncdb manangement step.
         """
+        if assets:
+            assets = json.dumps(assets)
         try:
             notice_type = cls._default_manager.get(label=label)
             updated = False
@@ -63,12 +73,16 @@ class NoticeType(models.Model):
             if default != notice_type.default:
                 notice_type.default = default
                 updated = True
+            if assets != notice_type.assets:
+                notice_type.assets = assets
+                updated = True
             if updated:
                 notice_type.save()
                 if verbosity > 1:
                     print("Updated %s NoticeType" % label)
         except cls.DoesNotExist:
-            cls(label=label, display=display, description=description, default=default).save()
+
+            cls(label=label, display=display, description=description, assets=assets, default=default).save()
             if verbosity > 1:
                 print("Created %s NoticeType" % label)
 

@@ -27,7 +27,8 @@ setup(
         ]
     },
     install_requires=[
-        "django-appconf>=1.0.1"
+        "django-appconf>=1.0.1",
+        "django>=1.4",
     ],
     test_suite="runtests.runtests",
     classifiers=[

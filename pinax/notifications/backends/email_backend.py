@@ -6,6 +6,9 @@ from django.utils.html import strip_tags
 
 from .base import BaseBackend
 
+import os
+from email.mime.image import MIMEImage
+
 
 class EmailBackend(BaseBackend):
     spam_sensitivity = 2
@@ -41,5 +44,17 @@ class EmailBackend(BaseBackend):
 
         msg = EmailMultiAlternatives(subject, body_text, sender, to=[recipient.email])
         msg.attach_alternative(body, "text/html")
+        msg.mixed_subtype = "related"
+
+        assets = notice_type.get_assets()
+        for file in assets:
+            path = os.path.join(settings.STATIC_ROOT, "notifications", file)
+            fp = open(path, 'rb')
+            msg_img = MIMEImage(fp.read())
+            fp.close()
+            msg_img.add_header('Content-ID', '<{}>'.format(file))
+            msg.attach(msg_img)
+
+        msg.attach_file(os.path.join(settings.STATIC_ROOT, "notifications", assets[0]), mimetype="image/jpg")
 
         msg.send()
