@@ -1,14 +1,13 @@
 from django.core.exceptions import ObjectDoesNotExist
-
 from django.contrib.contenttypes.models import ContentType
 
-from .conf import settings
+from notifications.conf import settings
 
 
 def load_media_defaults():
     media = []
     defaults = {}
-    for key, backend in settings.PINAX_NOTIFICATIONS_BACKENDS.items():
+    for key, backend in settings.NOTIFICATIONS_BACKENDS.items():
         # key is a tuple (medium_id, backend_label)
         media.append(key)
         defaults[key[0]] = backend.spam_sensitivity

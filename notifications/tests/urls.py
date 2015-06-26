@@ -6,5 +6,5 @@ except ImportError:
 
 urlpatterns = patterns(
     "",
-    url(r"^notifications/", include("pinax.notifications.urls")),
+    url(r"^notifications/", include("notifications.urls")),
 )

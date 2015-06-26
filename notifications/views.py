@@ -2,13 +2,13 @@ from django.http import HttpResponseRedirect
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 
-from .compat import login_required
+from notifications.compat import login_required
 from .models import NoticeType, NOTICE_MEDIA
 from .utils import notice_setting_for_user
 
 
 class NoticeSettingsView(TemplateView):
-    template_name = "pinax/notifications/notice_settings.html"
+    template_name = "notifications/notice_settings.html"
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):

@@ -1,10 +1,9 @@
 from django.core import management, mail
 from django.test import TestCase
 from django.test.utils import override_settings
-
 from django.contrib.auth import get_user_model
 
-from ..models import NoticeType, queue
+from notifications.models import NoticeType, queue
 
 
 class TestManagementCmd(TestCase):

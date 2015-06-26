@@ -56,7 +56,8 @@ import threading
 import time
 import errno
 
-from .compat import quote, get_ident
+from notifications.compat import quote, get_ident
+
 
 # Work with PEP8 and non-PEP8 versions of threading module.
 if not hasattr(threading, "current_thread"):

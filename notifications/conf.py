@@ -5,9 +5,9 @@ import importlib
 from django.conf import settings  # noqa
 from django.core.exceptions import ImproperlyConfigured
 
-from .compat import get_model
-
 from appconf import AppConf
+
+from notifications.compat import get_model
 
 
 def load_model(path):
@@ -43,14 +43,14 @@ def is_installed(package):
         return False
 
 
-class PinaxNotificationsAppConf(AppConf):
+class NotificationsAppConf(AppConf):
 
     LOCK_WAIT_TIMEOUT = -1
     GET_LANGUAGE_MODEL = None
     LANGUAGE_MODEL = None
     QUEUE_ALL = False
     BACKENDS = [
-        ("email", "pinax.notifications.backends.email_backend.EmailBackend"),
+        ("email", "notifications.backends.email_backend.EmailBackend"),
     ]
 
     def configure_backends(self, value):
@@ -71,7 +71,7 @@ class PinaxNotificationsAppConf(AppConf):
 
     def configure_get_language_model(self, value):
         if value is None:
-            return lambda: load_model(settings.PINAX_NOTIFICATIONS_LANGUAGE_MODEL)
+            return lambda: load_model(settings.NOTIFICATIONS_LANGUAGE_MODEL)
 
     class Meta:
-        prefix = "pinax_notifications"
+        prefix = "notifications"

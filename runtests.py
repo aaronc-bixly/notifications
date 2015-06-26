@@ -12,8 +12,8 @@ DEFAULT_SETTINGS = dict(
         "django.contrib.auth",
         "django.contrib.contenttypes",
         "django.contrib.sites",
-        "pinax.notifications",
-        "pinax.notifications.tests"
+        "notifications",
+        ".notifications.tests"
     ],
     MIDDLEWARE_CLASSES=[],
     DATABASES={
@@ -23,7 +23,7 @@ DEFAULT_SETTINGS = dict(
         }
     },
     SITE_ID=1,
-    ROOT_URLCONF="pinax.notifications.tests.urls",
+    ROOT_URLCONF="notifications.tests.urls",
     SECRET_KEY="notasecret",
 )
 
@@ -42,7 +42,7 @@ def runtests(*test_args):
     try:
         from django.test.runner import DiscoverRunner
         runner_class = DiscoverRunner
-        test_args = ["pinax.notifications.tests"]
+        test_args = ["notifications.tests"]
     except ImportError:
         from django.test.simple import DjangoTestSuiteRunner
         runner_class = DjangoTestSuiteRunner

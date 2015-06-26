@@ -1,13 +1,13 @@
+import os
+from email.mime.image import MIMEImage
+
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils.translation import ugettext
 from django.utils.html import strip_tags
 
-from .base import BaseBackend
-
-import os
-from email.mime.image import MIMEImage
+from notifications.backends.base import BaseBackend
 
 
 class EmailBackend(BaseBackend):
@@ -32,7 +32,7 @@ class EmailBackend(BaseBackend):
 
         body = self.get_formatted_message("email_body.html", notice_type.label, context)
 
-        subject = "".join(render_to_string("pinax/notifications/email_subject.txt", context).splitlines())
+        subject = "".join(render_to_string("notifications/email_subject.txt", context).splitlines())
 
         body_text = strip_tags(body)
 

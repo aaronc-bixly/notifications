@@ -1,6 +1,6 @@
 from django.db import models
 
-from ..conf import settings
+from notifications.conf import settings
 
 
 class Language(models.Model):

@@ -2,7 +2,7 @@ import logging
 
 from django.core.management.base import BaseCommand
 
-from pinax.notifications.engine import send_all
+from notifications.engine import send_all
 
 
 class Command(BaseCommand):

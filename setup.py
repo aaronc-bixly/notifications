@@ -11,24 +11,23 @@ def read(*parts):
 
 
 setup(
-    author="Pinax Developers",
-    author_email="developers@pinaxprojects.com",
+    author="Aaron Cunningham",
+    author_email="aa.cunningham@outlook.com",
     description="User notification management for the Django web framework",
-    name="pinax-notifications",
+    name="notifications",
     long_description=read("README.rst"),
-    version="2.1.0",
-    url="http://pinax-notifications.rtfd.org/",
+    version="1.0.0",
     license="MIT",
     packages=find_packages(),
     package_data={
-        "pinax.notifications": [
+        "notifications": [
             "locale/**/**/*",
-            "templates/pinax/notifications/*"
+            "templates/notifications/*"
         ]
     },
     install_requires=[
         "django-appconf>=1.0.1",
-        "django>=1.4",
+        "django>=1.7",
     ],
     test_suite="runtests.runtests",
     classifiers=[

@@ -11,14 +11,12 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import get_language, activate
 from django.utils.encoding import python_2_unicode_compatible
-from django.utils.six.moves import cPickle as pickle  # pylint: disable-msg=F
-
 from django.contrib.contenttypes.models import ContentType
 
-from .compat import GenericForeignKey
+from django.utils.six.moves import cPickle as pickle  # pylint: disable-msg=F
+from notifications.compat import GenericForeignKey
 from .conf import settings
 from .utils import load_media_defaults, notice_setting_for_user
-
 
 NOTICE_MEDIA, NOTICE_MEDIA_DEFAULTS = load_media_defaults()
 
@@ -163,8 +161,8 @@ def get_notification_language(user):
     LanguageStoreNotAvailable if this site does not use translated
     notifications.
     """
-    if settings.PINAX_NOTIFICATIONS_LANGUAGE_MODEL:
-        model = settings.PINAX_NOTIFICATIONS_GET_LANGUAGE_MODEL()
+    if settings.NOTIFICATIONS_LANGUAGE_MODEL:
+        model = settings.NOTIFICATIONS_GET_LANGUAGE_MODEL()
         try:
             language = model._default_manager.get(user__id__exact=user.id)
             if hasattr(language, "language"):
@@ -209,7 +207,7 @@ def send_now(users, label, extra_context=None, sender=settings.DEFAULT_FROM_EMAI
             # activate the user's language
             activate(language)
 
-        for backend in settings.PINAX_NOTIFICATIONS_BACKENDS.values():
+        for backend in settings.NOTIFICATIONS_BACKENDS.values():
             if backend.can_send(user, notice_type, scoping=scoping):
                 backend.deliver(notice_type, extra_context, attachments, user, sender)
                 sent = True
@@ -241,7 +239,7 @@ def send(*args, **kwargs):
     elif now_flag:
         return send_now(*args, **kwargs)
     else:
-        if settings.PINAX_NOTIFICATIONS_QUEUE_ALL:
+        if settings.NOTIFICATIONS_QUEUE_ALL:
             return queue(*args, **kwargs)
         else:
             return send_now(*args, **kwargs)
