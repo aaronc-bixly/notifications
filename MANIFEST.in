@@ -1,5 +1,4 @@
 include AUTHORS
 include LICENSE
 include README.rst
-recursive-include notifications/locale *
-recursive-include notifications/templates *
+recursive-include docs *
