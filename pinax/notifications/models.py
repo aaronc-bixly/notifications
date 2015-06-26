@@ -128,7 +128,8 @@ class NoticeHistory(models.Model):
     notice_type = models.ForeignKey(NoticeType)
     recipient = models.ManyToManyField(settings.AUTH_USER_MODEL, through='NoticeThrough')
     sender = models.TextField()
-    extra_context = models.TextField()
+    extra_context = models.TextField(null=True, blank=True)
+    attachments = models.TextField(null=True, blank=True)
     sent = models.DateTimeField(editable=False)
 
     def save(self, *args, **kwargs):
@@ -142,6 +143,13 @@ class NoticeHistory(models.Model):
 
     def get_extra_context(self):
         return json.loads(self.extra_context)
+
+    def set_attachments(self, dict):
+        value = json.dumps(dict)
+        self.attachments = value
+
+    def get_attachments(self):
+        return json.loads(self.attachments)
 
 
 class NoticeThrough(models.Model):
@@ -166,7 +174,7 @@ def get_notification_language(user):
     raise LanguageStoreNotAvailable
 
 
-def send_now(users, label, extra_context=None, sender=settings.DEFAULT_FROM_EMAIL, scoping=None):
+def send_now(users, label, extra_context=None, sender=settings.DEFAULT_FROM_EMAIL, scoping=None, attachments=None):
     """
     Creates a new notice.
 
@@ -180,6 +188,8 @@ def send_now(users, label, extra_context=None, sender=settings.DEFAULT_FROM_EMAI
     sent = False
     if extra_context is None:
         extra_context = {}
+    if attachments is None:
+        attachments = {}
 
     notice_type = NoticeType.objects.get(label=label)
 
@@ -201,12 +211,12 @@ def send_now(users, label, extra_context=None, sender=settings.DEFAULT_FROM_EMAI
 
         for backend in settings.PINAX_NOTIFICATIONS_BACKENDS.values():
             if backend.can_send(user, notice_type, scoping=scoping):
-                backend.deliver(notice_type, extra_context, user, sender)
+                backend.deliver(notice_type, extra_context, attachments, user, sender)
                 sent = True
                 sent_users.append(user)
 
     # reset environment to original language
-    history = NoticeHistory(notice_type=notice_type, sender=sender, extra_context=json.dumps(extra_context))
+    history = NoticeHistory(notice_type=notice_type, sender=sender, extra_context=json.dumps(extra_context), attachments=json.dumps(attachments))
     history.save()
     throughlist = []
     for user in sent_users:
@@ -237,7 +247,7 @@ def send(*args, **kwargs):
             return send_now(*args, **kwargs)
 
 
-def queue(users, label, extra_context=None, sender=None, send_at=None):
+def queue(users, label, extra_context=None, sender=None, send_at=None, attachments=None):
     """
     Queue the notification in NoticeQueueBatch. This allows for large amounts
     of user notifications to be deferred to a seperate process running outside
@@ -245,11 +255,13 @@ def queue(users, label, extra_context=None, sender=None, send_at=None):
     """
     if extra_context is None:
         extra_context = {}
+    if attachments is None:
+        attachments = {}
     if isinstance(users, QuerySet):
         users = [row["pk"] for row in users.values("pk")]
     else:
         users = [user.pk for user in users]
     notices = []
     for user in users:
-        notices.append((user, label, extra_context, sender))
+        notices.append((user, label, extra_context, sender, attachments))
     NoticeQueueBatch(pickled_data=base64.b64encode(pickle.dumps(notices)), send_at=send_at).save()

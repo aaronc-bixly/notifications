@@ -19,7 +19,7 @@ class EmailBackend(BaseBackend):
             return True
         return False
 
-    def deliver(self, notice_type, extra_context, recipient, sender=settings.DEFAULT_FROM_EMAIL):
+    def deliver(self, notice_type, extra_context, attachments, recipient, sender=settings.DEFAULT_FROM_EMAIL):
         # TODO: require this to be passed in extra_context
 
         context = self.default_context()
@@ -49,6 +49,7 @@ class EmailBackend(BaseBackend):
             msg_img.add_header('Content-ID', '<{}>'.format(file))
             msg.attach(msg_img)
 
-        msg.attach_file(os.path.join(settings.STATIC_ROOT, "notifications", assets[0]), mimetype="image/jpg")
+        for attachment in attachments:
+            msg.attach_file(attachment)
 
         msg.send()
