@@ -30,16 +30,10 @@ class EmailBackend(BaseBackend):
         })
         context.update(extra_context)
 
-        messages = self.get_formatted_messages((
-            "subject.html",
-            "body.html"
-        ), notice_type.label, context)
+        body = self.get_formatted_message("email_body.html", notice_type.label, context)
 
-        subject = "".join(render_to_string("pinax/notifications/email_subject.txt", {
-            "message": messages["subject.html"],
-        }, context).splitlines())
+        subject = "".join(render_to_string("pinax/notifications/email_subject.txt", context).splitlines())
 
-        body = messages["body.html"]
         body_text = strip_tags(body)
 
         msg = EmailMultiAlternatives(subject, body_text, sender, to=[recipient.email])

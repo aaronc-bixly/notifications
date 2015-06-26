@@ -29,21 +29,19 @@ class BaseBackend(object):
         """
         raise NotImplementedError()
 
-    def get_formatted_messages(self, formats, label, context):
+    def get_formatted_message(self, format, label, context):
         """
         Returns a dictionary with the format identifier as the key. The values are
         are fully rendered templates with the given context.
         """
-        format_templates = {}
-        for fmt in formats:
-            # conditionally turn off autoescaping for .txt extensions in format
-            if fmt.endswith(".txt"):
-                context.autoescape = False
+        # conditionally turn off autoescaping for .txt extensions in format
+        if format.endswith(".txt"):
+            context.autoescape = False
 
-            format_templates[fmt] = render_to_string((
-                "pinax/notifications/{0}/{1}".format(label, fmt),
-                "pinax/notifications/{0}".format(fmt)), context_instance=context)
-        return format_templates
+        format_template = render_to_string((
+            "pinax/notifications/{0}/{1}".format(label, format),
+            "pinax/notifications/{0}".format(format)), context_instance=context)
+        return format_template
 
     def default_context(self):
         use_ssl = getattr(settings, "PINAX_USE_SSL", False)
