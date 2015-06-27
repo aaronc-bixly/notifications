@@ -1,6 +1,5 @@
 import pkg_resources
 
-
-__version__ = pkg_resources.get_distribution("notifications").version
+__version__ = "1.0.0"
 
 default_app_config = "notifications.apps.AppConfig"
