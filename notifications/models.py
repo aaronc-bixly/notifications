@@ -184,7 +184,7 @@ def get_notification_language(user):
     raise LanguageStoreNotAvailable
 
 
-def send_now(users, label, extra_context=None, sender=settings.DEFAULT_FROM_EMAIL, scoping=None, attachments=None):
+def send_now(users, label, extra_context=None, sender=None, scoping=None, attachments=None):
     """
     Creates a new notice.
 
@@ -196,6 +196,8 @@ def send_now(users, label, extra_context=None, sender=settings.DEFAULT_FROM_EMAI
     )
     """
     sent = False
+    if sender is None:
+        sender = settings.DEFAULT_FROM_EMAIL
     if extra_context is None:
         extra_context = {}
     if attachments is None:
