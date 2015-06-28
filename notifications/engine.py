@@ -45,13 +45,13 @@ def send_all(*args):
         try:
             for queued_batch in NoticeQueueBatch.objects.all():
                 notices = pickle.loads(base64.b64decode(queued_batch.pickled_data))
-                for user, label, extra_context, sender in notices:
+                for user, label, extra_context, sender, attachments in notices:
                     try:
                         user = get_user_model().objects.get(pk=user)
                         logging.info("emitting notice {0} to {1}".format(label, user))
                         # call this once per user to be atomic and allow for logging to
                         # accurately show how long each takes.
-                        if notification.send_now([user], label, extra_context, sender):
+                        if notification.send_now(users=[user], label=label, extra_context=extra_context, sender=sender, attachments=attachments):
                             sent_actual += 1
                     except get_user_model().DoesNotExist:
                         # Ignore deleted users, just warn about them

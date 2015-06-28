@@ -8,10 +8,10 @@ from django.contrib.sites.models import Site
 
 from django.utils.six.moves import cPickle as pickle
 from notifications.conf import settings
-from ..models import NoticeType, NoticeQueueBatch, NoticeSetting
-from ..models import LanguageStoreNotAvailable
-from ..models import get_notification_language, send_now, send, queue
-from .models import Language
+from notifications.models import NoticeType, NoticeQueueBatch, NoticeSetting
+from notifications.models import LanguageStoreNotAvailable
+from notifications.models import get_notification_language, send_now, send, queue
+from notifications.models import Language
 from . import get_backend_id
 
 
@@ -76,14 +76,14 @@ class TestProcedures(BaseTest):
         self.lang.delete()
         NoticeQueueBatch.objects.all().delete()
 
-    @override_settings(NOTIFICATIONS_LANGUAGE_MODEL="tests.Language")
+    @override_settings(NOTIFICATIONS_LANGUAGE_MODEL="notifications.Language")
     def test_get_notification_language(self):
         self.assertEqual(get_notification_language(self.user), "en_US")
         self.assertRaises(LanguageStoreNotAvailable, get_notification_language, self.user2)
         setattr(settings, "NOTIFICATIONS_LANGUAGE_MODEL", None)
         self.assertRaises(LanguageStoreNotAvailable, get_notification_language, self.user)
 
-    @override_settings(SITE_ID=1, NOTIFICATIONS_LANGUAGE_MODEL="tests.Language")
+    @override_settings(SITE_ID=1, NOTIFICATIONS_LANGUAGE_MODEL="notifications.Language")
     def test_send_now(self):
         Site.objects.create(domain="localhost", name="localhost")
         users = [self.user, self.user2]

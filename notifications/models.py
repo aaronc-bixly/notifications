@@ -26,11 +26,9 @@ class LanguageStoreNotAvailable(Exception):
 
 @python_2_unicode_compatible
 class NoticeType(models.Model):
-
     label = models.CharField(_("label"), max_length=40)
     display = models.CharField(_("display"), max_length=50)
     description = models.CharField(_("description"), max_length=100)
-
     assets = models.TextField(_("assets"), null=True, blank=True)
 
     # by default only on for media with sensitivity less than or equal to this number
@@ -47,7 +45,10 @@ class NoticeType(models.Model):
         self.extra_context = json.dumps(asset_list)
 
     def get_assets(self):
-        return json.loads(self.assets)
+        if self.assets is not None:
+            return json.loads(self.assets)
+        else:
+            return {}
 
     @classmethod
     def create(cls, label, display, description, assets=None, default=2, verbosity=1):
@@ -140,19 +141,30 @@ class NoticeHistory(models.Model):
         self.extra_context = value
 
     def get_extra_context(self):
-        return json.loads(self.extra_context)
+        if self.assets is not None:
+            return json.loads(self.extra_context)
+        else:
+            return {}
 
     def set_attachments(self, dict):
         value = json.dumps(dict)
         self.attachments = value
 
     def get_attachments(self):
-        return json.loads(self.attachments)
+        if self.assets is not None:
+            return json.loads(self.attachments)
+        else:
+            return {}
 
 
 class NoticeThrough(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
     history = models.ForeignKey(NoticeHistory)
+
+
+class Language(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL)
+    language = models.CharField("language", max_length=10)
 
 
 def get_notification_language(user):

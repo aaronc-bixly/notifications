@@ -3,7 +3,7 @@ from django.test import TestCase, RequestFactory
 from django.contrib.auth import get_user_model
 
 from notifications.models import NoticeType, NoticeSetting
-from ..views import NoticeSettingsView
+from notifications.views import NoticeSettingsView
 from . import get_backend_id
 
 
