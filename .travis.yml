@@ -4,19 +4,9 @@ python:
   - "3.3"
   - "3.4"
 env:
-  - DJANGO=1.7
   - DJANGO=1.8
+  - DJANGO=1.9
   - DJANGO=master
 install:
-  - pip install tox coveralls
-script:
-  - tox -e py${TRAVIS_PYTHON_VERSION//[.]/}-$DJANGO
-after_success:
-  - coveralls
-notifications:
-  webhooks:
-    urls:
-      - https://webhooks.gitter.im/e/671c49ab17abad8623f6
-    on_success: change
-    on_failure: always
-    on_start: false
+  - pip install -q Django<=$DJANGO
+script: python runtests.py
