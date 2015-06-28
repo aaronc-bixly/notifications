@@ -4,5 +4,5 @@ python:
   - "3.3"
   - "3.4"
 install:
-  - pip install -q Django==1.7.8 django-appconf==1.0.1
+  - pip install -q Django==1.7.8 django-appconf>=1.0.1
 script: python runtests.py
