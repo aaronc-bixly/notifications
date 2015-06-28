@@ -15,26 +15,8 @@ and can be used independently of other Pinax apps.
 To learn more about Pinax, see http://pinaxproject.com/
 
 
-.. image:: https://badges.gitter.im/Join%20Chat.svg
-    :target: https://gitter.im/pinax/pinax-notifications
-
-.. image:: https://readthedocs.org/projects/pinax-notifications/badge/?version=latest
-    :target: https://pinax-notifications.readthedocs.org/
-
-.. image:: https://img.shields.io/travis/pinax/pinax-notifications.svg
-    :target: https://travis-ci.org/pinax/pinax-notifications
-
-.. image:: https://img.shields.io/coveralls/pinax/pinax-notifications.svg
-    :target: https://coveralls.io/r/pinax/pinax-notifications
-
-.. image:: https://img.shields.io/pypi/dm/pinax-notifications.svg
-    :target:  https://pypi.python.org/pypi/pinax-notifications/
-
-.. image:: https://img.shields.io/pypi/v/pinax-notifications.svg
-    :target:  https://pypi.python.org/pypi/pinax-notifications/
-
-.. image:: https://img.shields.io/badge/license-MIT-blue.svg
-    :target:  https://pypi.python.org/pypi/pinax-notifications/
+.. image:: https://travis-ci.org/aaronc-bixly/notifications.svg?branch=master
+    :target: https://travis-ci.org/aaronc-bixly/notifications
 
 
 Many sites need to notify users when certain events have occurred and to allow
