@@ -2,12 +2,10 @@ from __future__ import unicode_literals
 
 import importlib
 
-from django.conf import settings  # noqa
+from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
-
-from appconf import AppConf
-
 from django.apps import apps
+from appconf import AppConf
 
 
 def load_model(path):

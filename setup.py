@@ -1,6 +1,6 @@
 import codecs
-
 from os import path
+
 from setuptools import find_packages, setup
 
 
@@ -16,7 +16,7 @@ setup(
     description="User notification management for the Django web framework",
     name="notifications",
     long_description=read("README.rst"),
-    version="1.0.0",
+    version="0.1.0",
     license="MIT",
     packages=find_packages(),
     package_data={

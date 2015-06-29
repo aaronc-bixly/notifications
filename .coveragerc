@@ -1,7 +1,0 @@
-[run]
-source = pinax
-omit = notifications/tests/*,notifications/admin.py
-branch = 1
-
-[report]
-omit = notifications/tests/*,notifications/admin.py
