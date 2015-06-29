@@ -13,8 +13,8 @@ from django.utils.translation import get_language, activate
 from django.utils.encoding import python_2_unicode_compatible
 from django.contrib.contenttypes.models import ContentType
 
-from django.utils.six.moves import cPickle as pickle  # pylint: disable-msg=F
-from notifications.compat import GenericForeignKey
+from six.moves import cPickle as pickle  # pylint: disable-msg=F
+from django.contrib.contenttypes.fields import GenericForeignKey
 from .conf import settings
 from .utils import load_media_defaults, notice_setting_for_user
 

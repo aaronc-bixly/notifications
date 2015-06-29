@@ -7,12 +7,12 @@ from django.core.exceptions import ImproperlyConfigured
 
 from appconf import AppConf
 
-from notifications.compat import get_model
+from django.apps import apps
 
 
 def load_model(path):
     try:
-        return get_model(path)
+        return apps.get_model(path)
     except ValueError:
         raise ImproperlyConfigured(
             "{0} must be of the form 'app_label.model_name'".format(path)

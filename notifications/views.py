@@ -2,7 +2,7 @@ from django.http import HttpResponseRedirect
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 
-from notifications.compat import login_required
+from django.contrib.auth.decorators import login_required
 from .models import NoticeType, NOTICE_MEDIA
 from .utils import notice_setting_for_user
 

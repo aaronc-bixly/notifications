@@ -56,7 +56,7 @@ import threading
 import time
 import errno
 
-from notifications.compat import quote, get_ident
+from six.moves.urllib.parse import quote
 
 
 # Work with PEP8 and non-PEP8 versions of threading module.
@@ -307,7 +307,7 @@ class MkdirFileLock(LockBase):
         """
         LockBase.__init__(self, path, threaded)
         if threaded:
-            tname = "%x-" % get_ident()
+            tname = "%x-" % threading.current_thread().iden
         else:
             tname = ""
         # Lock file itself is a directory.  Place the unique file name into
