@@ -15,7 +15,7 @@ setup(
     author_email="aa.cunningham@outlook.com",
     description="User notification management for the Django web framework",
     name="notifications",
-    long_description=read("README.rst"),
+    long_description=read("README.md"),
     version="0.2.0",
     license="MIT",
     packages=find_packages(exclude=["tests"]),
