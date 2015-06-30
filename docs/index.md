@@ -35,6 +35,3 @@ In your code, send events;
     from notifications.models import send_now
     send_now([users], "label", {"extra": context})
 
-
-.. image:: https://travis-ci.org/aaronc-bixly/notifications.svg?branch=master
-    :target: https://travis-ci.org/aaronc-bixly/notifications

@@ -6,12 +6,16 @@
 </head>
 <body>
     {% for notice, html in notice_history %}
-        <h1>Sent to:</h1>
-        {% for user in notice.recipient.all %}
-            <h3>{{ user.email }}</h3>
-        {% endfor %}
-        <h5>Sent at {{ notice.sent_at }}</h5>
-        {{ html | safe }}
+        <div style="background: #EEEEEE; padding: 10px;">
+            <h1>Sent to:</h1>
+            {% for user in notice.recipient.all %}
+                <h3>{{ user.email }}</h3>
+            {% endfor %}
+            <h5>Sent at {{ notice.sent_at }}</h5>
+            <div style="background: #DDDDDD; padding: 10px;">
+                {{ html | safe }}
+            </div>
+        </div>
         <br>
     {% endfor %}
 </body>

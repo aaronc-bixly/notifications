@@ -16,7 +16,7 @@ setup(
     description="User notification management for the Django web framework",
     name="notifications",
     long_description=read("README.rst"),
-    version="0.1.1",
+    version="0.2.0",
     license="MIT",
     packages=find_packages(exclude=["tests"]),
     include_package_data=True,
@@ -28,6 +28,7 @@ setup(
     install_requires=[
         "django-appconf>=1.0.1",
         "django>=1.7",
+        "lockfile==0.10.2",
     ],
     test_suite="runtests.runtests",
     classifiers=[

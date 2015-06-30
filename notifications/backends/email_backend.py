@@ -6,6 +6,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils.translation import ugettext
 from django.utils.html import strip_tags
+from django.contrib.sites.models import Site
 
 from notifications.backends.base import BaseBackend
 from notifications.conf import settings
@@ -21,8 +22,6 @@ class EmailBackend(BaseBackend):
         return False
 
     def deliver(self, notice_type, extra_context, attachments, recipient, sender=settings.DEFAULT_FROM_EMAIL):
-        # TODO: require this to be passed in extra_context
-
         context = self.default_context()
         context.update({
             "recipient": recipient,
@@ -76,7 +75,7 @@ class EmailBackend(BaseBackend):
         rendered_history = self.render_history(notice_history)
         digest_body = render_to_string(["notifications/custom/digest.html", "notifications/digest.html"], {'notice_history': rendered_history})
         digest_text = strip_tags(digest_body)
-        digest_subject = "Digest from Testproject"
+        digest_subject = "Digest from " + Site.objects.get_current().domain
 
         emails = []
         for user in users:

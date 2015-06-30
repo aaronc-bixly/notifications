@@ -10,7 +10,6 @@ from django.utils.six.moves import cPickle as pickle
 from notifications.models import NoticeType, NoticeQueueBatch, NoticeSetting, NoticeHistory
 from notifications.models import LanguageStoreNotAvailable
 from notifications.models import get_notification_language, send_now, send, queue
-from notifications.models import Language
 from notifications.conf import settings
 from . import get_backend_id
 
@@ -68,22 +67,13 @@ class TestNoticeSetting(BaseTest):
 class TestProcedures(BaseTest):
     def setUp(self):
         super(TestProcedures, self).setUp()
-        self.lang = Language.objects.create(user=self.user, language="en_US")
         mail.outbox = []
 
     def tearDown(self):
         super(TestProcedures, self).tearDown()
-        self.lang.delete()
         NoticeQueueBatch.objects.all().delete()
 
-    @override_settings(NOTIFICATIONS_LANGUAGE_MODEL="notifications.Language")
-    def test_get_notification_language(self):
-        self.assertEqual(get_notification_language(self.user), "en_US")
-        self.assertRaises(LanguageStoreNotAvailable, get_notification_language, self.user2)
-        setattr(settings, "NOTIFICATIONS_LANGUAGE_MODEL", None)
-        self.assertRaises(LanguageStoreNotAvailable, get_notification_language, self.user)
-
-    @override_settings(SITE_ID=1, NOTIFICATIONS_LANGUAGE_MODEL="notifications.Language")
+    @override_settings(SITE_ID=1)
     def test_send_now(self):
         Site.objects.create(domain="localhost", name="localhost")
         users = [self.user, self.user2]

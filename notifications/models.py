@@ -51,7 +51,7 @@ class NoticeType(models.Model):
             return []
 
     @classmethod
-    def create(cls, label, display, description, assets=None, default=2, verbosity=1):
+    def create(cls, label, display, description, assets=None, default=2, verbosity=0):
         """
         Creates a new NoticeType.
 
@@ -83,6 +83,12 @@ class NoticeType(models.Model):
             cls(label=label, display=display, description=description, assets=assets, default=default).save()
             if verbosity > 1:
                 print("Created %s NoticeType" % label)
+
+
+class NoticeDigest(models.Model):
+    subscribers = models.ManyToManyField(settings.AUTH_USER_MODEL, verbose_name=_("user"))
+    notice_types = models.ManyToManyField(NoticeType)
+    frequency = models.FloatField()
 
 
 class NoticeSetting(models.Model):
@@ -124,6 +130,9 @@ class NoticeQueueBatch(models.Model):
 
 
 class NoticeHistory(models.Model):
+    """
+    Stores information of previously sent notifications.
+    """
     notice_type = models.ForeignKey(NoticeType)
     recipient = models.ManyToManyField(settings.AUTH_USER_MODEL, through='NoticeThrough')
     sender = models.TextField()
@@ -158,13 +167,11 @@ class NoticeHistory(models.Model):
 
 
 class NoticeThrough(models.Model):
+    """
+    Through model for history and users, please ignore.
+    """
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
     history = models.ForeignKey(NoticeHistory)
-
-
-class Language(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL)
-    language = models.CharField("language", max_length=10)
 
 
 def get_notification_language(user):
@@ -184,7 +191,7 @@ def get_notification_language(user):
     raise LanguageStoreNotAvailable
 
 
-def send_now(users, label, extra_context=None, sender=None, scoping=None, attachments=None):
+def send_now(users, label, extra_context=None, sender=None, scoping=None, attachments=None, **kwargs):
     """
     Creates a new notice.
 
@@ -201,7 +208,7 @@ def send_now(users, label, extra_context=None, sender=None, scoping=None, attach
     if extra_context is None:
         extra_context = {}
     if attachments is None:
-        attachments = {}
+        attachments = []
 
     notice_type = NoticeType.objects.get(label=label)
 

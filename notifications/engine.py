@@ -4,6 +4,8 @@ import logging
 import traceback
 import base64
 
+from lockfile import FileLock, AlreadyLocked, LockTimeout
+
 from django.utils import timezone
 from django.core.mail import mail_admins
 from django.contrib.auth import get_user_model
@@ -14,8 +16,26 @@ from notifications.models import NoticeQueueBatch, send_now, NoticeHistory
 from notifications.signals import emitted_notices
 from notifications.conf import settings
 
+def acquire_lock(*args):
+    if len(args) == 1:
+        lock = FileLock(args[0])
+    else:
+        lock = FileLock("send_notices")
+
+    logging.debug("acquiring lock...")
+    try:
+        lock.acquire(settings.NOTIFICATIONS_LOCK_WAIT_TIMEOUT)
+    except AlreadyLocked:
+        logging.debug("lock already in place. quitting.")
+        return
+    except LockTimeout:
+        logging.debug("waiting for the lock timed out. quitting.")
+        return
+    logging.debug("acquired.")
+    return lock
 
 def send_all(*args):
+    lock = acquire_lock(*args)
     batches, sent, sent_actual = 0, 0, 0
     start_time = time.time()
 
@@ -60,6 +80,10 @@ def send_all(*args):
         mail_admins(subject, message, fail_silently=True)
         # log it as critical
         logging.critical("an exception occurred: {0}".format(e))
+    finally:
+        logging.debug("releasing lock...")
+        lock.release()
+        logging.debug("released.")
 
     logging.info("")
     logging.info("{0} batches, {1} sent".format(batches, sent,))
