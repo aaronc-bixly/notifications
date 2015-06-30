@@ -2,8 +2,7 @@ from django.template import Context
 from django.template.loader import render_to_string
 from django.contrib.sites.models import Site
 
-from ..conf import settings
-from notifications.utils import notice_setting_for_user
+from notifications.conf import settings
 
 
 class BaseBackend(object):
@@ -20,7 +19,8 @@ class BaseBackend(object):
         Determines whether this backend is allowed to send a notification to
         the given user and notice_type.
         """
-        return notice_setting_for_user(user, notice_type, self.medium_id, scoping).send
+        # return notice_setting_for_user(user, notice_type, self.medium_id, scoping).send
+        return True
 
     def deliver(self, recipient, sender, notice_type, extra_context):
         """

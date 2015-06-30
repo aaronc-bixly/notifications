@@ -4,7 +4,7 @@ from notifications.models import NoticeType, NoticeQueueBatch, NoticeSetting, No
 
 
 class NoticeHistoryAdmin(admin.ModelAdmin):
-    readonly_fields = ["notice_type", "recipient", "sender", "extra_context", "sent"]
+    readonly_fields = ["notice_type", "recipient", "sender", "extra_context", "sent_at"]
 
 
 class NoticeTypeAdmin(admin.ModelAdmin):

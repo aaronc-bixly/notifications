@@ -5,6 +5,7 @@ from django.test.utils import override_settings
 from django.contrib.auth import get_user_model
 
 from notifications.models import NoticeType, queue, NoticeQueueBatch, send_now, NoticeHistory
+from notifications.engine import send_digest
 
 
 class TestManagementCmd(TestCase):
@@ -45,3 +46,14 @@ class TestManagementCmd(TestCase):
         self.assertEqual(len(query), 4)
         query = NoticeHistory.objects.filter(sent_at__gte=timezone.now(),  notice_type__label__in=["label", "label2", "different"])
         self.assertEqual(len(query), 0)
+
+    @override_settings(SITE_ID=1)
+    def test_digest_creator(self):
+        send_now([self.user], "label")
+        send_now([self.user], "label")
+        send_now([self.user], "label2")
+        send_digest([self.user2], ["label"])
+        self.assertEqual(len(mail.outbox), 4)
+        send_digest([self.user2], ["label", "label2"])
+        self.assertEqual(len(mail.outbox), 5)
+

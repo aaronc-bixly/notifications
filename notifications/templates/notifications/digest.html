@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+    {% for notice, html in notice_history %}
+        <h1>Sent to:</h1>
+        {% for user in notice.recipient.all %}
+            <h3>{{ user.email }}</h3>
+        {% endfor %}
+        <h5>Sent at {{ notice.sent_at }}</h5>
+        {{ html | safe }}
+        <br>
+    {% endfor %}
+</body>
+</html>

@@ -15,8 +15,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 
 from six.moves import cPickle as pickle
-from .conf import settings
-from .utils import load_media_defaults, notice_setting_for_user
+from notifications.utils import load_media_defaults, notice_setting_for_user
+from notifications.conf import settings
 
 NOTICE_MEDIA, NOTICE_MEDIA_DEFAULTS = load_media_defaults()
 
@@ -48,7 +48,7 @@ class NoticeType(models.Model):
         if self.assets is not None:
             return json.loads(self.assets)
         else:
-            return {}
+            return []
 
     @classmethod
     def create(cls, label, display, description, assets=None, default=2, verbosity=1):
@@ -141,20 +141,20 @@ class NoticeHistory(models.Model):
         self.extra_context = value
 
     def get_extra_context(self):
-        if self.assets is not None:
+        if self.extra_context is not None:
             return json.loads(self.extra_context)
         else:
             return {}
 
-    def set_attachments(self, dict):
+    def set_attachments(self, attach_list):
         value = json.dumps(dict)
         self.attachments = value
 
     def get_attachments(self):
-        if self.assets is not None:
+        if self.attachments is not None:
             return json.loads(self.attachments)
         else:
-            return {}
+            return []
 
 
 class NoticeThrough(models.Model):

@@ -7,11 +7,11 @@ from django.contrib.auth import get_user_model
 from django.contrib.sites.models import Site
 
 from django.utils.six.moves import cPickle as pickle
-from notifications.conf import settings
 from notifications.models import NoticeType, NoticeQueueBatch, NoticeSetting, NoticeHistory
 from notifications.models import LanguageStoreNotAvailable
 from notifications.models import get_notification_language, send_now, send, queue
 from notifications.models import Language
+from notifications.conf import settings
 from . import get_backend_id
 
 
@@ -92,6 +92,8 @@ class TestProcedures(BaseTest):
         self.assertIn(self.user.email, mail.outbox[0].to)
         self.assertIn(self.user2.email, mail.outbox[1].to)
         self.assertEqual(len(NoticeHistory.objects.all()), 1)
+        not_his = NoticeHistory.objects.get(pk=1)
+        self.assertEqual(len(not_his.recipient.all()), 2)
 
     @override_settings(SITE_ID=1)
     def test_send(self):
