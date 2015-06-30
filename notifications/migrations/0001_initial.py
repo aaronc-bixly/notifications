@@ -31,7 +31,7 @@ class Migration(migrations.Migration):
                 ('sender', models.TextField()),
                 ('extra_context', models.TextField(null=True, blank=True)),
                 ('attachments', models.TextField(null=True, blank=True)),
-                ('sent', models.DateTimeField(editable=False)),
+                ('sent_at', models.DateTimeField(editable=False)),
             ],
             options={
             },

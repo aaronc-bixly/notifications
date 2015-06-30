@@ -14,7 +14,7 @@ from django.utils.encoding import python_2_unicode_compatible
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 
-from six.moves import cPickle as pickle  # pylint: disable-msg=F
+from six.moves import cPickle as pickle
 from .conf import settings
 from .utils import load_media_defaults, notice_setting_for_user
 
@@ -129,11 +129,11 @@ class NoticeHistory(models.Model):
     sender = models.TextField()
     extra_context = models.TextField(null=True, blank=True)
     attachments = models.TextField(null=True, blank=True)
-    sent = models.DateTimeField(editable=False)
+    sent_at = models.DateTimeField(editable=False)
 
     def save(self, *args, **kwargs):
         if not self.id:
-            self.sent = timezone.now()
+            self.sent_at = timezone.now()
         return super(NoticeHistory, self).save(*args, **kwargs)
 
     def set_extra_context(self, dict):
@@ -227,13 +227,14 @@ def send_now(users, label, extra_context=None, sender=None, scoping=None, attach
                 sent = True
                 sent_users.append(user)
 
-    # reset environment to original language
     history = NoticeHistory(notice_type=notice_type, sender=sender, extra_context=json.dumps(extra_context), attachments=json.dumps(attachments))
     history.save()
     throughlist = []
     for user in sent_users:
         throughlist.append(NoticeThrough(user=user, history=history))
     NoticeThrough.objects.bulk_create(throughlist)
+
+    # reset environment to original language
     activate(current_language)
     return sent
 
