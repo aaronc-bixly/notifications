@@ -1,11 +1,8 @@
 # Notifications
 
-.. image:: https://codeclimate.com/github/aaronc-bixly/notifications/badges/gpa.svg
-   :target: https://codeclimate.com/github/aaronc-bixly/notifications
-   :alt: Code Climate
+[![Code Climate](https://codeclimate.com/github/aaronc-bixly/notifications/badges/gpa.svg)](https://codeclimate.com/github/aaronc-bixly/notifications)
    
-.. image:: https://travis-ci.org/aaronc-bixly/notifications.svg?branch=master
-   :target: https://travis-ci.org/aaronc-bixly/notifications
+[![Build Status](https://travis-ci.org/aaronc-bixly/notifications.svg?branch=master)](https://travis-ci.org/aaronc-bixly/notifications)
 
 
 This django application allows for notification types to be created and then sent in one command.
