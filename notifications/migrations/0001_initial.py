@@ -14,11 +14,10 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Language',
+            name='NoticeDigest',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('language', models.CharField(max_length=10, verbose_name='language')),
-                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
+                ('frequency', models.FloatField()),
             ],
             options={
             },
@@ -121,6 +120,18 @@ class Migration(migrations.Migration):
             model_name='noticehistory',
             name='recipient',
             field=models.ManyToManyField(to=settings.AUTH_USER_MODEL, through='notifications.NoticeThrough'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='noticedigest',
+            name='notice_types',
+            field=models.ManyToManyField(to='notifications.NoticeType'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='noticedigest',
+            name='subscribers',
+            field=models.ManyToManyField(to=settings.AUTH_USER_MODEL, verbose_name='user'),
             preserve_default=True,
         ),
     ]

@@ -43,7 +43,7 @@ use this is the apps that require their own NoticeTypes
         verbose_name = 'My App'
     
         def ready(self):
-            post_migrate.connect(handlers.create_notice_types, sender=self)
+            post_migrate.connect(create_notice_types, sender=self)
 
 Examples of how to use `post_migrate` can be found in the [Django Docs](https://docs.djangoproject.com/en/1.7/ref/signals/#post-migrate).
 

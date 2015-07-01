@@ -16,6 +16,7 @@ from notifications.models import NoticeQueueBatch, send_now, NoticeHistory
 from notifications.signals import emitted_notices
 from notifications.conf import settings
 
+
 def acquire_lock(*args):
     if len(args) == 1:
         lock = FileLock(args[0])
@@ -34,6 +35,7 @@ def acquire_lock(*args):
     logging.debug("acquired.")
     return lock
 
+
 def send_all(*args):
     lock = acquire_lock(*args)
     batches, sent, sent_actual = 0, 0, 0
@@ -49,7 +51,8 @@ def send_all(*args):
                         logging.info("emitting notice {0} to {1}".format(label, user))
                         # call this once per user to be atomic and allow for logging to
                         # accurately show how long each takes.
-                        if send_now(users=[user], label=label, extra_context=extra_context, sender=sender, attachments=attachments):
+                        if send_now(users=[user], label=label, extra_context=extra_context,
+                                    sender=sender, attachments=attachments):
                             sent_actual += 1
                     except get_user_model().DoesNotExist:
                         # Ignore deleted users, just warn about them
@@ -96,9 +99,11 @@ def send_digest(users, notice_types, **kwargs):
         backend.deliver_digest(users, notice_history)
 
 
-def collect_notifications(notice_types='__all__', days=1, seconds=0, microseconds=0, milliseconds=0, minutes=0, hours=0, weeks=0):
+def collect_notifications(notice_types='__all__', days=1, seconds=0, microseconds=0,
+                          milliseconds=0, minutes=0, hours=0, weeks=0):
     time_depth = timezone.now() - timezone.timedelta(days=days, seconds=seconds, microseconds=microseconds,
-                                                     milliseconds=milliseconds, minutes=minutes, hours=hours, weeks=weeks)
+                                                     milliseconds=milliseconds, minutes=minutes,
+                                                     hours=hours, weeks=weeks)
     if notice_types == '__all__':
         return NoticeHistory.objects.filter(sent_at__gte=time_depth)
     elif hasattr(notice_types, '__iter__'):

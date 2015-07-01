@@ -20,6 +20,7 @@ from notifications.conf import settings
 
 NOTICE_MEDIA, NOTICE_MEDIA_DEFAULTS = load_media_defaults()
 
+
 class LanguageStoreNotAvailable(Exception):
     pass
 
@@ -54,8 +55,7 @@ class NoticeType(models.Model):
     def create(cls, label, display, description, assets=None, default=2, verbosity=0):
         """
         Creates a new NoticeType.
-
-        This is intended to be used by other apps as a post_syncdb manangement step.
+        This is intended to be used by other apps as a post_migrate manangement step.
         """
         if assets:
             assets = json.dumps(assets)
@@ -79,7 +79,6 @@ class NoticeType(models.Model):
                 if verbosity > 1:
                     print("Updated %s NoticeType" % label)
         except cls.DoesNotExist:
-
             cls(label=label, display=display, description=description, assets=assets, default=default).save()
             if verbosity > 1:
                 print("Created %s NoticeType" % label)
@@ -96,7 +95,6 @@ class NoticeSetting(models.Model):
     Indicates, for a given user, whether to send notifications
     of a given type to a given medium.
     """
-
     user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_("user"))
     notice_type = models.ForeignKey(NoticeType, verbose_name=_("notice type"))
     medium = models.CharField(_("medium"), max_length=1, choices=NOTICE_MEDIA)
@@ -145,8 +143,8 @@ class NoticeHistory(models.Model):
             self.sent_at = timezone.now()
         return super(NoticeHistory, self).save(*args, **kwargs)
 
-    def set_extra_context(self, dict):
-        value = json.dumps(dict)
+    def set_extra_context(self, context_dict):
+        value = json.dumps(context_dict)
         self.extra_context = value
 
     def get_extra_context(self):
@@ -156,7 +154,7 @@ class NoticeHistory(models.Model):
             return {}
 
     def set_attachments(self, attach_list):
-        value = json.dumps(dict)
+        value = json.dumps(attach_list)
         self.attachments = value
 
     def get_attachments(self):
@@ -203,6 +201,7 @@ def send_now(users, label, extra_context=None, sender=None, scoping=None, attach
     )
     """
     sent = False
+
     if sender is None:
         sender = settings.DEFAULT_FROM_EMAIL
     if extra_context is None:
@@ -215,7 +214,6 @@ def send_now(users, label, extra_context=None, sender=None, scoping=None, attach
     current_language = get_language()
 
     sent_users = []
-
     for user in users:
         # get user language for user from language store defined in
         # NOTIFICATION_LANGUAGE_MODULE setting
@@ -234,7 +232,8 @@ def send_now(users, label, extra_context=None, sender=None, scoping=None, attach
                 sent = True
                 sent_users.append(user)
 
-    history = NoticeHistory(notice_type=notice_type, sender=sender, extra_context=json.dumps(extra_context), attachments=json.dumps(attachments))
+    history = NoticeHistory(notice_type=notice_type, sender=sender, extra_context=json.dumps(extra_context),
+                            attachments=json.dumps(attachments))
     history.save()
     throughlist = []
     for user in sent_users:

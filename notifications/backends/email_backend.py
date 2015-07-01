@@ -39,19 +39,12 @@ class EmailBackend(BaseBackend):
         msg.mixed_subtype = "related"
 
         assets = notice_type.get_assets()
-        for file in assets:
-            path = os.path.join(settings.STATIC_ROOT, "notifications", file)
-            fp = open(path, 'rb')
-            msg_img = MIMEImage(fp.read())
-            fp.close()
-            msg_img.add_header('Content-ID', '<{}>'.format(file))
-            msg.attach(msg_img)
+        msg = self.add_assets(assets, msg)
 
         for attachment in attachments:
             msg.attach_file(attachment)
 
         msg.send()
-
 
     def render_history(self, notice_history):
         renderings = []
@@ -73,7 +66,8 @@ class EmailBackend(BaseBackend):
 
     def deliver_digest(self, users, notice_history):
         rendered_history = self.render_history(notice_history)
-        digest_body = render_to_string(["notifications/custom/digest.html", "notifications/digest.html"], {'notice_history': rendered_history})
+        digest_body = render_to_string(["notifications/custom/digest.html", "notifications/digest.html"],
+                                       {'notice_history': rendered_history})
         digest_text = strip_tags(digest_body)
         digest_subject = "Digest from " + Site.objects.get_current().domain
 
@@ -89,12 +83,17 @@ class EmailBackend(BaseBackend):
         for notice in notice_history:
             asset_list = asset_list + notice.notice_type.get_assets()
         asset_set = set(asset_list)
-        for file in asset_set:
-            path = os.path.join(settings.STATIC_ROOT, "notifications", file)
+        msg = self.add_assets(asset_set, msg)
+
+        msg.send()
+
+    def add_assets(self, asset_set, msg):
+        for asset in asset_set:
+            path = os.path.join(settings.STATIC_ROOT, "notifications", asset)
             fp = open(path, 'rb')
             msg_img = MIMEImage(fp.read())
             fp.close()
-            msg_img.add_header('Content-ID', '<{}>'.format(file))
+            msg_img.add_header('Content-ID', '<{}>'.format(asset))
             msg.attach(msg_img)
+        return msg
 
-        msg.send()
