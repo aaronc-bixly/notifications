@@ -1,4 +1,11 @@
-# notifications
+# Notifications
+
+.. image:: https://codeclimate.com/github/aaronc-bixly/notifications/badges/gpa.svg
+   :target: https://codeclimate.com/github/aaronc-bixly/notifications
+   :alt: Code Climate
+.. image:: https://travis-ci.org/aaronc-bixly/notifications.svg?branch=master
+   :target: https://travis-ci.org/aaronc-bixly/notifications
+
 
 This django application allows for notification types to be created and then sent in one command.
 
@@ -34,7 +41,3 @@ In your code, send events;
 
     from notifications.models import send_now
     send_now([users], "label", {"extra": context})
-
-
-.. image:: https://travis-ci.org/aaronc-bixly/notifications.svg?branch=master
-    :target: https://travis-ci.org/aaronc-bixly/notifications
