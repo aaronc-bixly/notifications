@@ -3,6 +3,7 @@
 .. image:: https://codeclimate.com/github/aaronc-bixly/notifications/badges/gpa.svg
    :target: https://codeclimate.com/github/aaronc-bixly/notifications
    :alt: Code Climate
+   
 .. image:: https://travis-ci.org/aaronc-bixly/notifications.svg?branch=master
    :target: https://travis-ci.org/aaronc-bixly/notifications
 
