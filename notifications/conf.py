@@ -42,7 +42,6 @@ def is_installed(package):
 
 
 class NotificationsAppConf(AppConf):
-
     LOCK_WAIT_TIMEOUT = -1
     GET_LANGUAGE_MODEL = None
     LANGUAGE_MODEL = None
@@ -50,6 +49,7 @@ class NotificationsAppConf(AppConf):
     BACKENDS = [
         ("email", "notifications.backends.email_backend.EmailBackend"),
     ]
+    DEFAULT_BACKEND = "notifications.backends.email_backend.EmailBackend"
 
     def configure_backends(self, value):
         backends = []
@@ -66,6 +66,12 @@ class NotificationsAppConf(AppConf):
             backend_instance = load_path_attr(backend_path)(medium_id, spam_sensitivity)
             backends.append(((medium_id, label), backend_instance))
         return dict(backends)
+
+    def configure_default_backend(self, value):
+        if value is not None:
+            return load_path_attr(value)(0, None)
+        if value is None:
+            return load_path_attr(settings.NOTIFICATIONS_DEFAULT_BACKEND)(0, None)
 
     def configure_get_language_model(self, value):
         if value is None:

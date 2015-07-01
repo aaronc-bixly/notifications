@@ -7,6 +7,8 @@ DATABASES = {
     }
 }
 
+EMAIL_BACKEND = 'django.core.email.backends.locmem.EmailBackend'
+
 SECRET_KEY = 'fake-key'
 
 INSTALLED_APPS=[

@@ -5,17 +5,17 @@ import base64
 import json
 
 from django.db import models
-from django.db.models.query import QuerySet
 from django.core.exceptions import ImproperlyConfigured
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import get_language, activate
 from django.utils.encoding import python_2_unicode_compatible
+from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 
-from six.moves import cPickle as pickle
-from notifications.utils import load_media_defaults, notice_setting_for_user
+from six.moves import cPickle
+from notifications.utils import load_media_defaults, assemble_emails, separate_emails_and_users
 from notifications.conf import settings
 
 NOTICE_MEDIA, NOTICE_MEDIA_DEFAULTS = load_media_defaults()
@@ -32,6 +32,7 @@ class NoticeType(models.Model):
     description = models.CharField(_("description"), max_length=100)
     assets = models.TextField(_("assets"), null=True, blank=True)
 
+    objects = models.Manager()
     # by default only on for media with sensitivity less than or equal to this number
     default = models.IntegerField(_("default"))
 
@@ -60,7 +61,7 @@ class NoticeType(models.Model):
         if assets:
             assets = json.dumps(assets)
         try:
-            notice_type = cls._default_manager.get(label=label)
+            notice_type = cls.objects.get(label=label)
             updated = False
             if display != notice_type.display:
                 notice_type.display = display
@@ -84,12 +85,6 @@ class NoticeType(models.Model):
                 print("Created %s NoticeType" % label)
 
 
-class NoticeDigest(models.Model):
-    subscribers = models.ManyToManyField(settings.AUTH_USER_MODEL, verbose_name=_("user"))
-    notice_types = models.ManyToManyField(NoticeType)
-    frequency = models.FloatField()
-
-
 class NoticeSetting(models.Model):
     """
     Indicates, for a given user, whether to send notifications
@@ -102,15 +97,6 @@ class NoticeSetting(models.Model):
     scoping_content_type = models.ForeignKey(ContentType, null=True, blank=True)
     scoping_object_id = models.PositiveIntegerField(null=True, blank=True)
     scoping = GenericForeignKey("scoping_content_type", "scoping_object_id")
-
-    @classmethod
-    def for_user(cls, user, notice_type, medium, scoping=None):
-        """
-        Kept for backwards compatibilty but isn't used anywhere within this app
-
-        @@@ consider deprecating
-        """
-        return notice_setting_for_user(user, notice_type, medium, scoping)
 
     class Meta:
         verbose_name = _("notice setting")
@@ -192,16 +178,9 @@ def get_notification_language(user):
 def send_now(users, label, extra_context=None, sender=None, scoping=None, attachments=None, **kwargs):
     """
     Creates a new notice.
-
     This is intended to be how other apps create new notices.
-
-    notification.send(user, "friends_invite_sent", {
-        "spam": "eggs",
-        "foo": "bar",
-    )
     """
     sent = False
-
     if sender is None:
         sender = settings.DEFAULT_FROM_EMAIL
     if extra_context is None:
@@ -209,39 +188,50 @@ def send_now(users, label, extra_context=None, sender=None, scoping=None, attach
     if attachments is None:
         attachments = []
 
-    notice_type = NoticeType.objects.get(label=label)
+    email_list, user_list = separate_emails_and_users(users)
+    UserModel = get_user_model()
+    for email in email_list:
+        try:
+            user = UserModel.objects.get(email=email)
+            user_list.append(user)
+            email_list.remove(email)
+        except UserModel.DoesNotExist:
+            pass
 
+    notice_type = NoticeType.objects.get(label=label)
     current_language = get_language()
 
     sent_users = []
-    for user in users:
+    for user in user_list:
         # get user language for user from language store defined in
         # NOTIFICATION_LANGUAGE_MODULE setting
         try:
             language = get_notification_language(user)
-        except LanguageStoreNotAvailable:
-            language = None
-
-        if language is not None:
-            # activate the user's language
             activate(language)
+        except LanguageStoreNotAvailable:
+            pass
 
         for backend in settings.NOTIFICATIONS_BACKENDS.values():
             if backend.can_send(user, notice_type, scoping=scoping):
-                backend.deliver(notice_type, extra_context, attachments, user, sender)
+                backend.deliver(notice_type, extra_context, attachments, user.email, sender)
                 sent = True
                 sent_users.append(user)
+
+        # reset environment to original language
+        activate(current_language)
+
+    for email in email_list:
+        backend = settings.NOTIFICATIONS_DEFAULT_BACKEND
+        backend.deliver(notice_type, extra_context, attachments, email, sender)
 
     history = NoticeHistory(notice_type=notice_type, sender=sender, extra_context=json.dumps(extra_context),
                             attachments=json.dumps(attachments))
     history.save()
     throughlist = []
-    for user in sent_users:
-        throughlist.append(NoticeThrough(user=user, history=history))
+    for user_email in sent_users:
+        throughlist.append(NoticeThrough(user=user_email, history=history))
     NoticeThrough.objects.bulk_create(throughlist)
 
-    # reset environment to original language
-    activate(current_language)
     return sent
 
 
@@ -276,11 +266,8 @@ def queue(users, label, extra_context=None, sender=None, send_at=None, attachmen
         extra_context = {}
     if attachments is None:
         attachments = {}
-    if isinstance(users, QuerySet):
-        users = [row["pk"] for row in users.values("pk")]
-    else:
-        users = [user.pk for user in users]
+    user_list = assemble_emails(users)
     notices = []
-    for user in users:
+    for user in user_list:
         notices.append((user, label, extra_context, sender, attachments))
-    NoticeQueueBatch(pickled_data=base64.b64encode(pickle.dumps(notices)), send_at=send_at).save()
+    NoticeQueueBatch(pickled_data=base64.b64encode(cPickle.dumps(notices)), send_at=send_at).save()

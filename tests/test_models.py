@@ -6,7 +6,7 @@ from django.test.utils import override_settings
 from django.contrib.auth import get_user_model
 from django.contrib.sites.models import Site
 
-from django.utils.six.moves import cPickle as pickle
+from six.moves import cPickle
 from notifications.models import NoticeType, NoticeQueueBatch, NoticeSetting, NoticeHistory
 from notifications.models import LanguageStoreNotAvailable
 from notifications.models import get_notification_language, send_now, send, queue
@@ -44,26 +44,6 @@ class TestNoticeType(TestCase):
         self.assertEqual(n.default, 1)
 
 
-class TestNoticeSetting(BaseTest):
-    def test_for_user(self):
-        email_id = get_backend_id("email")
-        notice_setting = NoticeSetting.objects.create(
-            user=self.user,
-            notice_type=self.notice_type,
-            medium=email_id,
-            send=False
-        )
-        self.assertEqual(
-            NoticeSetting.for_user(self.user, self.notice_type, email_id, scoping=None),
-            notice_setting
-        )
-
-        # test default fallback
-        NoticeSetting.for_user(self.user2, self.notice_type, email_id, scoping=None)
-        ns2 = NoticeSetting.objects.get(user=self.user2, notice_type=self.notice_type, medium=email_id)
-        self.assertTrue(ns2.send)
-
-
 class TestProcedures(BaseTest):
     def setUp(self):
         super(TestProcedures, self).setUp()
@@ -98,7 +78,7 @@ class TestProcedures(BaseTest):
         send(users, "label", queue=True)
         self.assertEqual(NoticeQueueBatch.objects.count(), 1)
         batch = NoticeQueueBatch.objects.all()[0]
-        notices = pickle.loads(base64.b64decode(batch.pickled_data))
+        notices = cPickle.loads(base64.b64decode(batch.pickled_data))
         self.assertEqual(len(notices), 2)
 
     @override_settings(SITE_ID=1)
@@ -115,3 +95,25 @@ class TestProcedures(BaseTest):
         queue(users, "label")
         self.assertEqual(len(mail.outbox), 0)
         self.assertEqual(NoticeQueueBatch.objects.count(), 1)
+
+    @override_settings(SITE_ID=1)
+    def test_non_user_send(self):
+        emails = ["one@test.com", "two@test.com"]
+        send(emails, "label")
+        self.assertEqual(len(mail.outbox), 2)
+
+    @override_settings(SITE_ID=1)
+    def test_mixed_user_send(self):
+        emails = [self.user, "one@test.com"]
+        send(emails, "label")
+        self.assertEqual(len(mail.outbox), 2)
+
+        emails.append(self.user2)
+        send(emails, "label")
+        self.assertEqual(len(mail.outbox), 5)
+
+        emails.append("two@test.com")
+        emails.append("three@test.com")
+        send(emails, "label")
+        self.assertEqual(len(mail.outbox), 10)
+        self.assertEqual(len(NoticeHistory.objects.all()), 3)

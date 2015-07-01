@@ -16,11 +16,6 @@ This includes:
 
 ## Quickstart
 
-To install, simply download the tar.gz and use pip install:
-
-    pip install notifications-0.1.1.tar.gz
-
-
 Add `notifications` to your `INSTALLED_APPS` setting:
 
     INSTALLED_APPS = (

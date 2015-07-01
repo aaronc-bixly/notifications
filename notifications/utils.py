@@ -1,3 +1,5 @@
+from django.db.models import QuerySet
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.contenttypes.models import ContentType
 
@@ -47,3 +49,27 @@ def notice_setting_for_user(user, notice_type, medium, scoping=None):
         kwargs.update({"send": default})
         setting = user.noticesetting_set.create(**kwargs)
         return setting
+
+
+def assemble_emails(user_list):
+    email_list = []
+    if isinstance(user_list, QuerySet):
+        email_list = [row["pk"] for row in user_list.values("pk")]
+    else:
+        for user in user_list:
+            if isinstance(user, get_user_model()):
+                email_list.append(user.email)
+            elif isinstance(user, basestring):
+                email_list.append(user)
+    return email_list
+
+
+def separate_emails_and_users(value_list):
+    email_list = []
+    user_list = []
+    for value in value_list:
+        if isinstance(value, get_user_model()):
+            user_list.append(value)
+        elif isinstance(value, basestring):
+            email_list.append(value)
+    return email_list, user_list

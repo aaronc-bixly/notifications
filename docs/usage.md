@@ -76,7 +76,7 @@ site or app, these templates are rendered with the following context variables:
 * `default_http_protocol` - `https` if `settings.USE_SSL` is True, otherwise `http`
 * `current_site` - `Site.objects.get_current()`
 * `base_url` - the default http protocol combined with the current site domain
-* `recipient` - the user who is getting the notice
+* `recipient_email` - the email that will receive the notice
 * `sender` - the value supplied to the `sender` kwarg of the `send` method (often this is not set and will be default to
  the `DEFAULT_FROM_EMAIL` setting in your `settings.py`)
 * `notice` - display value of the notice type

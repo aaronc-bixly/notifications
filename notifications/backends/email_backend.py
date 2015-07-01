@@ -21,10 +21,10 @@ class EmailBackend(BaseBackend):
             return True
         return False
 
-    def deliver(self, notice_type, extra_context, attachments, recipient, sender=settings.DEFAULT_FROM_EMAIL):
+    def deliver(self, notice_type, extra_context, attachments, recipient_email, sender=settings.DEFAULT_FROM_EMAIL):
         context = self.default_context()
         context.update({
-            "recipient": recipient,
+            "recipient_email": recipient_email,
             "sender": sender,
             "notice": ugettext(notice_type.display),
         })
@@ -34,7 +34,7 @@ class EmailBackend(BaseBackend):
         body = self.get_formatted_message("email_body.html", notice_type.label, context)
         body_text = strip_tags(body)
 
-        msg = EmailMultiAlternatives(subject, body_text, sender, to=[recipient.email])
+        msg = EmailMultiAlternatives(subject, body_text, sender, to=[recipient_email])
         msg.attach_alternative(body, "text/html")
         msg.mixed_subtype = "related"
 
@@ -96,4 +96,3 @@ class EmailBackend(BaseBackend):
             msg_img.add_header('Content-ID', '<{}>'.format(asset))
             msg.attach(msg_img)
         return msg
-
