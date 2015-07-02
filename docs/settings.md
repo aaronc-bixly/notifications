@@ -88,3 +88,12 @@ It defines how long to wait for the lock to become available. Default of -1
 means to never wait for the lock to become available. This only applies when
 using crontab setup to execute the `emit_notices` management command to send
 queued messages rather than sending immediately.
+
+
+## NOTIFICATIONS_DEFAULT_BACKEND
+
+It defaults to `notifications.backends.email_backend.EmailBackend`.
+
+This is used for one off send functions, where the values submitted are string
+emails. Because the users cannot save settings and choose another backend, their
+notification sending method is defaulted email.

@@ -40,8 +40,8 @@ class NoticeType(models.Model):
         return self.label
 
     class Meta:
-        verbose_name = _("notice type")
-        verbose_name_plural = _("notice types")
+        verbose_name = _("Notice Type")
+        verbose_name_plural = _("Notice Types")
 
     def set_assets(self, asset_list):
         self.extra_context = json.dumps(asset_list)
@@ -99,8 +99,8 @@ class NoticeSetting(models.Model):
     scoping = GenericForeignKey("scoping_content_type", "scoping_object_id")
 
     class Meta:
-        verbose_name = _("notice setting")
-        verbose_name_plural = _("notice settings")
+        verbose_name = _("Notice Setting")
+        verbose_name_plural = _("Notice Settings")
         unique_together = ("user", "notice_type", "medium", "scoping_content_type", "scoping_object_id")
 
 
@@ -123,6 +123,10 @@ class NoticeHistory(models.Model):
     extra_context = models.TextField(null=True, blank=True)
     attachments = models.TextField(null=True, blank=True)
     sent_at = models.DateTimeField(editable=False)
+
+    class Meta:
+        verbose_name = _("Notice History")
+        verbose_name_plural = _("Notice History")
 
     def save(self, *args, **kwargs):
         if not self.id:
