@@ -117,3 +117,7 @@ class TestProcedures(BaseTest):
         send(emails, "label")
         self.assertEqual(len(mail.outbox), 10)
         self.assertEqual(len(NoticeHistory.objects.all()), 3)
+
+        emails = [u"one@test.com"]
+        send(emails, "label")
+        self.assertEqual(len(mail.outbox), 11)

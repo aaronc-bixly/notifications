@@ -7,7 +7,7 @@ from django.contrib.contenttypes.models import ContentType
 from notifications.conf import settings
 
 # Support for python2.7 and 3.4
-basestring = (str,bytes)
+basestring = (str, basestring)
 
 
 def load_media_defaults():
