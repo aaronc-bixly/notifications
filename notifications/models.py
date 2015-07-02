@@ -15,7 +15,10 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 
 from six.moves import cPickle
-from notifications.utils import load_media_defaults, assemble_emails, separate_emails_and_users
+from notifications.utils import (
+    load_media_defaults, assemble_emails,
+    separate_emails_and_users,
+)
 from notifications.conf import settings
 
 NOTICE_MEDIA, NOTICE_MEDIA_DEFAULTS = load_media_defaults()
@@ -134,12 +137,11 @@ class NoticeHistory(models.Model):
         return super(NoticeHistory, self).save(*args, **kwargs)
 
     def set_extra_context(self, context_dict):
-        value = json.dumps(context_dict)
-        self.extra_context = value
+        self.extra_context = cPickle.dumps(context_dict)
 
     def get_extra_context(self):
         if self.extra_context is not None:
-            return json.loads(self.extra_context)
+            return cPickle.loads(self.extra_context)
         else:
             return {}
 
@@ -228,7 +230,7 @@ def send_now(users, label, extra_context=None, sender=None, scoping=None, attach
         backend = settings.NOTIFICATIONS_DEFAULT_BACKEND
         backend.deliver(notice_type, extra_context, attachments, email, sender)
 
-    history = NoticeHistory(notice_type=notice_type, sender=sender, extra_context=json.dumps(extra_context),
+    history = NoticeHistory(notice_type=notice_type, sender=sender, extra_context=cPickle.dumps(extra_context),
                             attachments=json.dumps(attachments))
     history.save()
     throughlist = []

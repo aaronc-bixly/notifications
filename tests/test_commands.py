@@ -56,4 +56,3 @@ class TestManagementCmd(TestCase):
         self.assertEqual(len(mail.outbox), 4)
         send_digest([self.user2], ["label", "label2"])
         self.assertEqual(len(mail.outbox), 5)
-

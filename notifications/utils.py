@@ -1,4 +1,5 @@
-from django.db.models import QuerySet
+from django.db import models
+from django.forms.models import model_to_dict
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.contenttypes.models import ContentType
@@ -56,7 +57,7 @@ def notice_setting_for_user(user, notice_type, medium, scoping=None):
 
 def assemble_emails(user_list):
     email_list = []
-    if isinstance(user_list, QuerySet):
+    if isinstance(user_list, models.QuerySet):
         email_list = [row["pk"] for row in user_list.values("pk")]
     else:
         for user in user_list:
