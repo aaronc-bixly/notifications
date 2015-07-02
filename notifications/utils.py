@@ -1,13 +1,12 @@
 from django.db import models
-from django.forms.models import model_to_dict
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.contenttypes.models import ContentType
 
 from notifications.conf import settings
+from notifications.compat import basestring
 
 # Support for python2.7 and 3.4
-basestring = (str, bytes, unicode)
 
 
 def load_media_defaults():
