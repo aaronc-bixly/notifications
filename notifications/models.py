@@ -137,11 +137,11 @@ class NoticeHistory(models.Model):
         return super(NoticeHistory, self).save(*args, **kwargs)
 
     def set_extra_context(self, context_dict):
-        self.extra_context = cPickle.dumps(context_dict)
+        self.extra_context = base64.b16decode(cPickle.dumps(context_dict))
 
     def get_extra_context(self):
         if self.extra_context is not None:
-            return cPickle.loads(self.extra_context)
+            return cPickle.loads(base64.b64decode(self.extra_context))
         else:
             return {}
 
@@ -230,7 +230,7 @@ def send_now(users, label, extra_context=None, sender=None, scoping=None, attach
         backend = settings.NOTIFICATIONS_DEFAULT_BACKEND
         backend.deliver(notice_type, extra_context, attachments, email, sender)
 
-    history = NoticeHistory(notice_type=notice_type, sender=sender, extra_context=cPickle.dumps(extra_context),
+    history = NoticeHistory(notice_type=notice_type, sender=sender, extra_context=base64.b64encode(cPickle.dumps(extra_context)),
                             attachments=json.dumps(attachments))
     history.save()
     throughlist = []
