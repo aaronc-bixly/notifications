@@ -6,8 +6,6 @@ from django.contrib.contenttypes.models import ContentType
 from notifications.conf import settings
 from notifications.compat import basestring
 
-# Support for python2.7 and 3.4
-
 
 def load_media_defaults():
     media = []

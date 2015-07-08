@@ -29,6 +29,8 @@ setup(
         "django-appconf>=1.0.1",
         "django>=1.7",
         "lockfile==0.10.2",
+        "celery",
+        "django-celery",
     ],
     test_suite="runtests.runtests",
     classifiers=[
