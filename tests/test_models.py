@@ -1,17 +1,16 @@
 import base64
+import time
 
 from django.core import mail
 from django.test import TestCase
 from django.test.utils import override_settings
+from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.contrib.sites.models import Site
 
 from six.moves import cPickle
-from notifications.models import NoticeType, NoticeQueueBatch, NoticeSetting, NoticeHistory
-from notifications.models import LanguageStoreNotAvailable
-from notifications.models import get_notification_language, send_now, send, queue
-from notifications.conf import settings
-from . import get_backend_id
+from notifications.models import NoticeType, NoticeQueueBatch, NoticeHistory, DigestSubscription
+from notifications.models import send_now, send, queue
 
 
 class BaseTest(TestCase):
@@ -28,20 +27,35 @@ class BaseTest(TestCase):
 
 
 class TestNoticeType(TestCase):
-
     def test_create(self):
         label = "friends_invite"
-        NoticeType.create(label, "Invitation Received", "you received an invitation", default=2,
-                          verbosity=2)
+        NoticeType.create(label, "Invitation Received", "you received an invitation", default=2)
         n = NoticeType.objects.get(label=label)
         self.assertEqual(str(n), label)
         # update
-        NoticeType.create(label, "Invitation for you", "you got an invitation", default=1,
-                          verbosity=2)
+        NoticeType.create(label, "Invitation for you", "you got an invitation", default=1)
         n = NoticeType.objects.get(pk=n.pk)
         self.assertEqual(n.display, "Invitation for you")
         self.assertEqual(n.description, "you got an invitation")
         self.assertEqual(n.default, 1)
+
+
+class TestDigestSubscription(BaseTest):
+    def test_create(self):
+        test_time = timezone.now()
+        q = DigestSubscription.objects.create(user=self.user, notice_type="label", frequency=1)
+        self.assertEqual(q.user, self.user)
+        self.assertEqual(q.notice_type, "label")
+        self.assertLess(test_time, q.emit_at)
+        test_time = test_time + timezone.timedelta(seconds=2)
+        self.assertGreater(test_time, q.emit_at)
+        self.assertEqual(q.frequency, 1)
+
+    def test_is_ready(self):
+        q = DigestSubscription.objects.create(user=self.user, notice_type="label", frequency=1)
+        self.assertFalse(q.is_ready())
+        time.sleep(2)
+        self.assertTrue(q.is_ready())
 
 
 class TestProcedures(BaseTest):

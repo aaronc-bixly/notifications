@@ -1,10 +1,12 @@
+import time
+
 from django.utils import timezone
 from django.core import management, mail
 from django.test import TestCase
 from django.test.utils import override_settings
 from django.contrib.auth import get_user_model
 
-from notifications.models import NoticeType, queue, NoticeQueueBatch, send_now, NoticeHistory
+from notifications.models import NoticeType, queue, NoticeQueueBatch, send_now, NoticeHistory, DigestSubscription
 from notifications.engine import send_digest
 
 
@@ -56,3 +58,16 @@ class TestManagementCmd(TestCase):
         self.assertEqual(len(mail.outbox), 4)
         send_digest([self.user2], ["label", "label2"])
         self.assertEqual(len(mail.outbox), 5)
+
+    @override_settings(SITE_ID=1)
+    def test_emit_subscriptions(self):
+        DigestSubscription.objects.create(user=self.user, notice_type="label", frequency=4)
+        DigestSubscription.objects.create(user=self.user, notice_type="label2", frequency=8)
+        management.call_command("emit_subscriptions")
+        self.assertEqual(len(mail.outbox), 0)
+        time.sleep(4)
+        management.call_command("emit_subscriptions")
+        self.assertEqual(len(mail.outbox), 1)
+        time.sleep(8)
+        management.call_command("emit_subscriptions")
+        self.assertEqual(len(mail.outbox), 3)

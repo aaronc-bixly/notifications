@@ -2,12 +2,12 @@ import logging
 
 from django.core.management.base import BaseCommand
 
-from notifications.engine import send_all
+from notifications.engine import send_subscriptions
 
 
 class Command(BaseCommand):
-    help = "Emit queued notices."
+    help = "Send out digests to those subscribed"
 
     def handle(self, *args, **options):
         logging.basicConfig(level=logging.DEBUG, format="%(message)s")
-        send_all(*args)
+        send_subscriptions()

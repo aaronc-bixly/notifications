@@ -30,6 +30,9 @@ class LanguageStoreNotAvailable(Exception):
 
 @python_2_unicode_compatible
 class NoticeType(models.Model):
+    """
+    Defines types of notices, which are used to set presets for different templates and
+    """
     label = models.CharField(_("label"), max_length=40)
     display = models.CharField(_("display"), max_length=50)
     description = models.CharField(_("description"), max_length=100)
@@ -56,7 +59,7 @@ class NoticeType(models.Model):
             return []
 
     @classmethod
-    def create(cls, label, display, description, assets=None, default=2, verbosity=0):
+    def create(cls, label, display, description, assets=None, default=2):
         """
         Creates a new NoticeType.
         This is intended to be used by other apps as a post_migrate manangement step.
@@ -80,12 +83,8 @@ class NoticeType(models.Model):
                 updated = True
             if updated:
                 notice_type.save()
-                if verbosity > 1:
-                    print("Updated %s NoticeType" % label)
         except cls.DoesNotExist:
             cls(label=label, display=display, description=description, assets=assets, default=default).save()
-            if verbosity > 1:
-                print("Created %s NoticeType" % label)
 
 
 class NoticeSetting(models.Model):
@@ -114,6 +113,10 @@ class NoticeQueueBatch(models.Model):
     """
     pickled_data = models.TextField()
     send_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("Notice Queue Batch")
+        verbose_name_plural = _("Notice Queue Batches")
 
 
 class NoticeHistory(models.Model):
@@ -156,6 +159,32 @@ class NoticeHistory(models.Model):
             return []
 
 
+class DigestSubscription(models.Model):
+    """
+    Allows users to subscribe to digests with a custom time frame
+    """
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('user'))
+    notice_type = models.CharField(_('notice type'), max_length=40)
+    emit_at = models.DateTimeField(editable=False)
+    frequency = models.PositiveIntegerField(default=604800)
+
+    class Meta:
+        verbose_name = _("Digest Subscription")
+        verbose_name_plural = _("Digest Subscriptions")
+
+    def save(self, *args, **kwargs):
+        if not self.id:
+            self.emit_at = timezone.now() + timezone.timedelta(seconds=self.frequency)
+        super(DigestSubscription, self).save(*args, **kwargs)
+
+
+    def is_ready(self):
+        if self.emit_at <= timezone.now():
+            return True
+        else:
+            return False
+
+
 class NoticeThrough(models.Model):
     """
     Through model for history and users, please ignore.
@@ -173,12 +202,33 @@ def get_notification_language(user):
     if settings.NOTIFICATIONS_LANGUAGE_MODEL:
         model = settings.NOTIFICATIONS_GET_LANGUAGE_MODEL()
         try:
-            language = model._default_manager.get(user__id__exact=user.id)
+            language = model.objects.get(user__id__exact=user.id)
             if hasattr(language, "language"):
                 return language.language
         except (ImportError, ImproperlyConfigured, model.DoesNotExist):
             raise LanguageStoreNotAvailable
     raise LanguageStoreNotAvailable
+
+
+def send(*args, **kwargs):
+    """
+    A basic interface around both queue and send_now. This honors a global
+    flag NOTIFICATION_QUEUE_ALL that helps determine whether all calls should
+    be queued or not. A per call ``queue`` or ``now`` keyword argument can be
+    used to always override the default global behavior.
+    """
+    queue_flag = kwargs.pop("queue", False)
+    now_flag = kwargs.pop("now", False)
+    assert not (queue_flag and now_flag), "'queue' and 'now' cannot both be True."
+    if queue_flag:
+        return queue(*args, **kwargs)
+    elif now_flag:
+        return send_now(*args, **kwargs)
+    else:
+        if settings.NOTIFICATIONS_QUEUE_ALL:
+            return queue(*args, **kwargs)
+        else:
+            return send_now(*args, **kwargs)
 
 
 def send_now(users, label, extra_context=None, sender=None, scoping=None, attachments=None, **kwargs):
@@ -195,13 +245,13 @@ def send_now(users, label, extra_context=None, sender=None, scoping=None, attach
         attachments = []
 
     email_list, user_list = separate_emails_and_users(users)
-    UserModel = get_user_model()
+    usermodel = get_user_model()
     for email in email_list:
         try:
-            user = UserModel.objects.get(email=email)
+            user = usermodel.objects.get(email=email)
             user_list.append(user)
             email_list.remove(email)
-        except UserModel.DoesNotExist:
+        except usermodel.DoesNotExist:
             pass
 
     notice_type = NoticeType.objects.get(label=label)
@@ -230,7 +280,8 @@ def send_now(users, label, extra_context=None, sender=None, scoping=None, attach
         backend = settings.NOTIFICATIONS_DEFAULT_BACKEND
         backend.deliver(notice_type, extra_context, attachments, email, sender)
 
-    history = NoticeHistory(notice_type=notice_type, sender=sender, extra_context=base64.b64encode(cPickle.dumps(extra_context)),
+    history = NoticeHistory(notice_type=notice_type, sender=sender,
+                            extra_context=base64.b64encode(cPickle.dumps(extra_context)),
                             attachments=json.dumps(attachments))
     history.save()
     throughlist = []
@@ -239,27 +290,6 @@ def send_now(users, label, extra_context=None, sender=None, scoping=None, attach
     NoticeThrough.objects.bulk_create(throughlist)
 
     return sent
-
-
-def send(*args, **kwargs):
-    """
-    A basic interface around both queue and send_now. This honors a global
-    flag NOTIFICATION_QUEUE_ALL that helps determine whether all calls should
-    be queued or not. A per call ``queue`` or ``now`` keyword argument can be
-    used to always override the default global behavior.
-    """
-    queue_flag = kwargs.pop("queue", False)
-    now_flag = kwargs.pop("now", False)
-    assert not (queue_flag and now_flag), "'queue' and 'now' cannot both be True."
-    if queue_flag:
-        return queue(*args, **kwargs)
-    elif now_flag:
-        return send_now(*args, **kwargs)
-    else:
-        if settings.NOTIFICATIONS_QUEUE_ALL:
-            return queue(*args, **kwargs)
-        else:
-            return send_now(*args, **kwargs)
 
 
 def queue(users, label, extra_context=None, sender=None, send_at=None, attachments=None):

@@ -12,7 +12,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.sites.models import Site
 
 from six.moves import cPickle as pickle
-from notifications.models import NoticeQueueBatch, send_now, NoticeHistory
+from notifications.models import NoticeQueueBatch, send_now, NoticeHistory, DigestSubscription
 from notifications.signals import emitted_notices
 from notifications.conf import settings
 
@@ -32,7 +32,7 @@ def acquire_lock(*args):
     except LockTimeout:
         logging.debug("waiting for the lock timed out. quitting.")
         return
-    logging.debug("acquired.")
+    logging.debug("acquired")
     return lock
 
 
@@ -85,13 +85,22 @@ def send_all(*args):
         finally:
             logging.debug("releasing lock...")
             lock.release()
-            logging.debug("released.")
+            logging.debug("released")
     else:
         pass
 
     logging.info("")
     logging.info("{0} batches, {1} sent".format(batches, sent,))
     logging.info("done in {0:.2f} seconds".format(time.time() - start_time))
+
+
+def send_subscriptions():
+    digest_subs = DigestSubscription.objects.filter(emit_at__lte=timezone.now())
+    for digest_sub in digest_subs:
+        if digest_sub.is_ready():
+            digest_sub.emit_at = timezone.now() + timezone.timedelta(seconds=digest_sub.frequency)
+            digest_sub.save()
+            send_digest([digest_sub.user], [digest_sub.notice_type], seconds=digest_sub.frequency)
 
 
 def send_digest(users, notice_types, **kwargs):
