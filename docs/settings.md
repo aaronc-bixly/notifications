@@ -41,34 +41,7 @@ Example model in a `languages` app::
 Setting this value in `settings.py`::
 
     NOTIFICATIONS_LANGUAGE_MODEL = "languages.Language"
-
-
-DEFAULT_FROM_EMAIL
-------------------
-
-Defaults to `webmaster@localhost` and is a [standard Django setting](https://docs.djangoproject.com/en/1.7/ref/settings/#default-from-email).
-
-Default e-mail address to use for various automated correspondence from
-`notifications.backends.email`.
-
-
-## LANGUAGES
-
-Defaults to a tuple of all available languages and is a
-[standard Django setting](https://docs.djangoproject.com/en/1.7/ref/settings/#languages).
-
-The default for this is specifically used for things like the Django admin.
-However, if you need to specify a subset of languages for your site's front end
-you can use this setting to override the default. In which case this is the
-definated pattern of usage::
-
-    gettext = lambda s: s
-
-    LANGUAGES = (
-        ("en", gettext("English")),
-        ("fr", gettext("French")),
-    )
-
+    
 
 ## NOTIFICATIONS_QUEUE_ALL
 
@@ -97,3 +70,30 @@ It defaults to `notifications.backends.email_backend.EmailBackend`.
 This is used for one off send functions, where the values submitted are string
 emails. Because the users cannot save settings and choose another backend, their
 notification sending method is defaulted email.
+
+
+## DEFAULT_FROM_EMAIL
+
+
+Defaults to `webmaster@localhost` and is a [standard Django setting](https://docs.djangoproject.com/en/1.7/ref/settings/#default-from-email).
+
+Default e-mail address to use for various automated correspondence from
+`notifications.backends.email`.
+
+
+## LANGUAGES
+
+Defaults to a tuple of all available languages and is a
+[standard Django setting](https://docs.djangoproject.com/en/1.7/ref/settings/#languages).
+
+The default for this is specifically used for things like the Django admin.
+However, if you need to specify a subset of languages for your site's front end
+you can use this setting to override the default. In which case this is the
+definated pattern of usage:
+
+    gettext = lambda s: s
+
+    LANGUAGES = (
+        ("en", gettext("English")),
+        ("fr", gettext("French")),
+    )

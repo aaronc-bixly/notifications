@@ -34,8 +34,8 @@ class DigestSubscriptionAdminForm(forms.ModelForm):
         notice_type = cleaned_data.get("notice_type")
         if notice_type_list == None and notice_type == '':
             raise ValidationError("You must fill either 'Notice Type List' or 'Notice Type'", code='empty_fields')
-        if notice_type_list != '':
-            cleaned_data["notice_type"] = notice_type
+        if notice_type_list is not None:
+            cleaned_data["notice_type"] = notice_type_list
         return cleaned_data
 
 

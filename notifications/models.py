@@ -175,7 +175,7 @@ class DigestSubscription(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.id:
-            self.emit_at = timezone.now() + timezone.timedelta(seconds=self.frequency)
+            self.emit_at = timezone.now()
         super(DigestSubscription, self).save(*args, **kwargs)
 
     def is_ready(self):

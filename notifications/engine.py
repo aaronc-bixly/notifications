@@ -98,9 +98,9 @@ def send_subscriptions():
     digest_subs = DigestSubscription.objects.filter(emit_at__lte=timezone.now())
     for digest_sub in digest_subs:
         if digest_sub.is_ready():
-            digest_sub.emit_at = timezone.now() + timezone.timedelta(seconds=digest_sub.frequency)
+            digest_sub.emit_at = timezone.now() + timezone.timedelta(minutes=digest_sub.frequency)
             digest_sub.save()
-            send_digest([digest_sub.user], [digest_sub.notice_type], seconds=digest_sub.frequency)
+            send_digest([digest_sub.user], [digest_sub.notice_type], minutes=digest_sub.frequency)
 
 
 def send_digest(users, notice_types, **kwargs):
@@ -109,7 +109,7 @@ def send_digest(users, notice_types, **kwargs):
         backend.deliver_digest(users, notice_history)
 
 
-def collect_notifications(notice_types='__all__', days=1, seconds=0, microseconds=0,
+def collect_notifications(notice_types='__all__', days=0, seconds=0, microseconds=0,
                           milliseconds=0, minutes=0, hours=0, weeks=0):
     time_depth = timezone.now() - timezone.timedelta(days=days, seconds=seconds, microseconds=microseconds,
                                                      milliseconds=milliseconds, minutes=minutes,
