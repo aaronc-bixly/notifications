@@ -6,6 +6,7 @@ import json
 
 from django.db import models
 from django.core.exceptions import ImproperlyConfigured
+from django.core import serializers
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import get_language, activate
@@ -50,11 +51,11 @@ class NoticeType(models.Model):
         verbose_name_plural = _("Notice Types")
 
     def set_assets(self, asset_list):
-        self.extra_context = json.dumps(asset_list)
+        self.extra_context = serializers.serialize("json", asset_list)
 
     def get_assets(self):
         if self.assets is not None:
-            return json.loads(self.assets)
+            return serializers.deserialize("json", self.assets)
         else:
             return []
 
@@ -166,7 +167,7 @@ class DigestSubscription(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('user'))
     notice_type = models.CharField(_('notice type'), max_length=40)
     emit_at = models.DateTimeField(editable=False)
-    frequency = models.PositiveIntegerField(default=604800)
+    frequency = models.PositiveIntegerField(default=10800, help_text="Frequency of digest notifications, in minutes")
 
     class Meta:
         verbose_name = _("Digest Subscription")
@@ -176,7 +177,6 @@ class DigestSubscription(models.Model):
         if not self.id:
             self.emit_at = timezone.now() + timezone.timedelta(seconds=self.frequency)
         super(DigestSubscription, self).save(*args, **kwargs)
-
 
     def is_ready(self):
         if self.emit_at <= timezone.now():
@@ -267,9 +267,11 @@ def send_now(users, label, extra_context=None, sender=None, scoping=None, attach
         except LanguageStoreNotAvailable:
             pass
 
+        additional_context = extra_context
+        additional_context["user"] = user
         for backend in settings.NOTIFICATIONS_BACKENDS.values():
             if backend.can_send(user, notice_type, scoping=scoping):
-                backend.deliver(notice_type, extra_context, attachments, user.email, sender)
+                backend.deliver(notice_type, additional_context, attachments, user.email, sender)
                 sent = True
                 sent_users.append(user)
 
